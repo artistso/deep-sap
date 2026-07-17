@@ -21,7 +21,21 @@ jobs:
       - name: Format
         run: cargo fmt --all -- --check
       - name: Clippy native
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        id: clippy-native
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo clippy --all-targets --all-features -- -D warnings 2>&1 | tee clippy-native.log
+      - name: Upload native Clippy diagnostics
+        if: steps.clippy-native.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: clippy-native-diagnostics
+          path: clippy-native.log
+      - name: Fail on native Clippy error
+        if: steps.clippy-native.outcome == 'failure'
+        run: exit 1
       - name: Unit tests
         run: cargo test --all-targets --all-features
       - name: Independent math reference checks
@@ -62,7 +76,21 @@ jobs:
       - uses: jetli/trunk-action@v0.5.0
       - uses: Swatinem/rust-cache@v2
       - name: Build release PWA
-        run: trunk build --release --public-url ./
+        id: trunk-build
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          trunk build --release --public-url ./ 2>&1 | tee trunk-build.log
+      - name: Upload Trunk diagnostics
+        if: steps.trunk-build.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: trunk-build-diagnostics
+          path: trunk-build.log
+      - name: Fail on Trunk build error
+        if: steps.trunk-build.outcome == 'failure'
+        run: exit 1
       - name: Enforce compressed WASM budget
         shell: bash
         run: |
