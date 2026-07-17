@@ -22,7 +22,6 @@ bevy = { version = "=0.15.3", default-features = false, features = [
   "png",
   "default_font",
   "webgl2",
-  "bevy_log",
   "x11",
 ] }
 rand = { version = "0.8", features = ["small_rng"] }
