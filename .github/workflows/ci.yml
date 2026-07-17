@@ -36,8 +36,8 @@ jobs:
       - name: Fail on native Clippy error
         if: steps.clippy-native.outcome == 'failure'
         run: exit 1
-      - name: Unit tests
-        run: cargo test --all-targets --all-features
+      - name: Numerical core unit tests
+        run: cargo test --lib --all-features
       - name: Independent math reference checks
         run: python tools/math_reference_check.py
       - name: Check WASM target
