@@ -6,6 +6,6 @@ dist = "dist"
 watch = ["src", "assets", "index.html", "styles.css"]
 
 [serve]
-address = "0.0.0.0"
+addresses = ["0.0.0.0"]
 port = 8080
 open = false
