@@ -139,18 +139,30 @@ impl ApiState {
         quality: DataQuality,
     ) {
         for sample in &samples {
-            self.environment
-                .sst_c
-                .update(sample.sst_c.or(sample.water_temp_c), sample, fetched_at_s, quality);
-            self.environment
-                .salinity_psu
-                .update(sample.salinity_psu, sample, fetched_at_s, quality);
-            self.environment
-                .bottom_depth_m
-                .update(sample.bottom_depth_m, sample, fetched_at_s, quality);
-            self.environment
-                .wave_height_m
-                .update(sample.wave_height_m, sample, fetched_at_s, quality);
+            self.environment.sst_c.update(
+                sample.sst_c.or(sample.water_temp_c),
+                sample,
+                fetched_at_s,
+                quality,
+            );
+            self.environment.salinity_psu.update(
+                sample.salinity_psu,
+                sample,
+                fetched_at_s,
+                quality,
+            );
+            self.environment.bottom_depth_m.update(
+                sample.bottom_depth_m,
+                sample,
+                fetched_at_s,
+                quality,
+            );
+            self.environment.wave_height_m.update(
+                sample.wave_height_m,
+                sample,
+                fetched_at_s,
+                quality,
+            );
         }
         self.recent_samples.extend(samples);
         if self.recent_samples.len() > 32 {

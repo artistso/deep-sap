@@ -178,8 +178,8 @@ pub fn acoustic_propagation_system(
         }
 
         let bearing_stddev_deg = 4.5 - confidence * 4.0;
-        let bearing_noise = gaussianish_noise(target_id.0 as u64, sweep_index, 13)
-            * bearing_stddev_deg;
+        let bearing_noise =
+            gaussianish_noise(target_id.0 as u64, sweep_index, 13) * bearing_stddev_deg;
         let frequency_noise = gaussianish_noise(target_id.0 as u64, sweep_index, 29)
             * (0.5 + (1.0 - confidence) * 3.0);
 
@@ -228,8 +228,7 @@ pub fn input_s_pen_system(
     if let Some(position) = cursor_position {
         if let Ok(world_position) = camera.viewport_to_world_2d(camera_transform, position) {
             input_state.last_pen_pos = Some(world_position);
-            input_state.active_bearing =
-                nav_bearing_deg(world_position - ownship_position.0);
+            input_state.active_bearing = nav_bearing_deg(world_position - ownship_position.0);
         }
     }
 
@@ -265,11 +264,7 @@ pub fn render_sonar_background(
 
     for radius in [5.0, 10.0, 15.0, 20.0, 30.0] {
         gizmos
-            .circle_2d(
-                center,
-                radius,
-                Color::srgba(0.1, 0.4, 0.7, 0.15),
-            )
+            .circle_2d(center, radius, Color::srgba(0.1, 0.4, 0.7, 0.15))
             .resolution(128);
     }
 
@@ -337,11 +332,7 @@ pub fn render_sonar_background(
     }
 
     gizmos.circle_2d(center, 0.8, Color::srgb(0.2, 1.0, 0.6));
-    gizmos.circle_2d(
-        center,
-        1.2,
-        Color::srgba(0.2, 1.0, 0.6, 0.3),
-    );
+    gizmos.circle_2d(center, 1.2, Color::srgba(0.2, 1.0, 0.6, 0.3));
 }
 
 pub fn cleanup_old_observations(
@@ -379,8 +370,7 @@ fn draw_uncertainty_ellipse(
     let mut previous = center + rotation * Vec2::new(major, 0.0);
     for index in 1..=segments {
         let angle = std::f32::consts::TAU * index as f32 / segments as f32;
-        let current = center
-            + rotation * Vec2::new(major * angle.cos(), minor * angle.sin());
+        let current = center + rotation * Vec2::new(major * angle.cos(), minor * angle.sin());
         gizmos.line_2d(previous, current, color);
         previous = current;
     }

@@ -16,10 +16,7 @@ pub fn sap_fusion_system(
     let now = time.elapsed_secs_f64();
 
     for (_observation_entity, mut observation) in observations.iter_mut() {
-        if observation.consumed
-            || observation.confidence < 0.12
-            || observation.snr_db < -10.0
-        {
+        if observation.consumed || observation.confidence < 0.12 || observation.snr_db < -10.0 {
             continue;
         }
 
@@ -33,24 +30,23 @@ pub fn sap_fusion_system(
                 let expected_bearing = track
                     .estimate
                     .map(|estimate| {
-                        nav_bearing_deg(
-                            estimate.position_km - observation.observer_position_km,
-                        )
+                        nav_bearing_deg(estimate.position_km - observation.observer_position_km)
                     })
                     .unwrap_or(track.last_bearing);
                 let angular_error = angular_distance_abs_deg(
                     expected_bearing as f64,
                     observation.bearing_deg as f64,
                 ) as f32;
-                let frequency_error =
-                    (track.last_frequency_hz - observation.freq_hz).abs();
+                let frequency_error = (track.last_frequency_hz - observation.freq_hz).abs();
                 let angular_gate = if track.estimate.is_some() { 6.0 } else { 9.0 };
                 let frequency_gate = 18.0;
                 let score = angular_error / angular_gate + frequency_error / frequency_gate;
 
                 if angular_error <= angular_gate
                     && frequency_error <= frequency_gate
-                    && best.map(|(_, best_score)| score < best_score).unwrap_or(true)
+                    && best
+                        .map(|(_, best_score)| score < best_score)
+                        .unwrap_or(true)
                 {
                     best = Some((track_entity, score));
                 }
@@ -109,19 +105,17 @@ pub fn sap_fusion_system(
     sap_table.probable_submarines = probable_submarines;
 }
 
-pub fn classification_update_system(
-    mut tracks: Query<(&SapTrack, &mut Classification)>,
-) {
+pub fn classification_update_system(mut tracks: Query<(&SapTrack, &mut Classification)>) {
     for (track, mut classification) in tracks.iter_mut() {
         let (state, certainty) = if track.submarine_probability >= 0.72 {
-            (
-                ClassState::SyntheticSubmarine,
-                track.submarine_probability,
-            )
+            (ClassState::SyntheticSubmarine, track.submarine_probability)
         } else if track.submarine_probability <= 0.28 {
             (ClassState::Biologic, 1.0 - track.submarine_probability)
         } else {
-            (ClassState::Unknown, 1.0 - (track.submarine_probability - 0.5).abs() * 2.0)
+            (
+                ClassState::Unknown,
+                1.0 - (track.submarine_probability - 0.5).abs() * 2.0,
+            )
         };
         classification.state = state;
         classification.certainty = certainty.clamp(0.0, 1.0);
@@ -180,7 +174,13 @@ pub fn tma_system(
     time: Res<Time>,
     ocean: Res<OceanProfile>,
     mut targets: Query<
-        (&TargetId, &mut Position, &mut Velocity, &mut Depth, &Submarine),
+        (
+            &TargetId,
+            &mut Position,
+            &mut Velocity,
+            &mut Depth,
+            &Submarine,
+        ),
         With<TruthTarget>,
     >,
 ) {
@@ -211,8 +211,7 @@ pub fn tma_system(
                 clamp_speed_knots(&mut velocity.0, 9.0);
             }
             SubClass::Whale => {
-                let turn_rate =
-                    (elapsed_seconds * 0.17 + target_id.0 as f32 * 0.31).sin() * 0.08;
+                let turn_rate = (elapsed_seconds * 0.17 + target_id.0 as f32 * 0.31).sin() * 0.08;
                 velocity.0 = Mat2::from_angle(turn_rate * delta_seconds) * velocity.0;
                 clamp_speed_knots(&mut velocity.0, 3.0);
             }

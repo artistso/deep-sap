@@ -222,7 +222,8 @@ fn ui_update_system(
         DataQuality::Unknown => "NO-DATA",
     };
 
-    let mut text = format!(
+    let mut text =
+        format!(
         "T={:.0}s | SST {:.1}C | SAL {:.1} | OBS {} | FIXES {} | BRG {:.0}° | PEN {} | DATA {} | ",
         time.elapsed_secs(),
         ocean.surface_temp_c,
@@ -243,7 +244,11 @@ fn ui_update_system(
     } else {
         for entity in sap_table.tracks.iter().take(4) {
             if let Ok(track) = tracks.get(*entity) {
-                let fix = if track.estimate.is_some() { "FIX" } else { "BRG" };
+                let fix = if track.estimate.is_some() {
+                    "FIX"
+                } else {
+                    "BRG"
+                };
                 text.push_str(&format!(
                     "[{} {:03.0}° Q{} Psub {:02.0}% {}] ",
                     track.id,
@@ -265,11 +270,7 @@ fn ui_update_system(
     }
 }
 
-fn waterfall_update(
-    mut gizmos: Gizmos,
-    time: Res<Time>,
-    observations: Query<&BearingObservation>,
-) {
+fn waterfall_update(mut gizmos: Gizmos, time: Res<Time>, observations: Query<&BearingObservation>) {
     let y_base = -38.0;
     let now = time.elapsed_secs();
     for observation in observations.iter() {
@@ -282,12 +283,7 @@ fn waterfall_update(
         gizmos.line_2d(
             Vec2::new(x, y),
             Vec2::new(x, y - 0.12 - intensity * 0.5),
-            Color::srgba(
-                0.2 + intensity * 0.8,
-                0.8,
-                1.0,
-                intensity * 0.85,
-            ),
+            Color::srgba(0.2 + intensity * 0.8, 0.8, 1.0, intensity * 0.85),
         );
     }
     if (now as i32) % 2 == 0 {

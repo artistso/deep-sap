@@ -172,9 +172,7 @@ impl OceanProfile {
         if depth_m < self.thermocline_depth_m {
             self.sound_speed_surface - 0.5 * depth_m / self.thermocline_depth_m.max(1.0)
         } else {
-            self.sound_speed_surface
-                - 0.5
-                - 0.016 * (depth_m - self.thermocline_depth_m).min(200.0)
+            self.sound_speed_surface - 0.5 - 0.016 * (depth_m - self.thermocline_depth_m).min(200.0)
                 + 0.014 * (depth_m - self.thermocline_depth_m - 200.0).max(0.0)
         }
     }
@@ -183,12 +181,11 @@ impl OceanProfile {
         let range_m = range_km.max(0.001) * 1000.0;
         let spherical = 20.0 * range_m.log10();
         let absorption = 0.001 * (freq_hz / 1000.0).max(0.0) * range_km;
-        let thermocline_loss =
-            if depth_m > self.thermocline_depth_m + 20.0 && range_km > 5.0 {
-                10.0
-            } else {
-                0.0
-            };
+        let thermocline_loss = if depth_m > self.thermocline_depth_m + 20.0 && range_km > 5.0 {
+            10.0
+        } else {
+            0.0
+        };
         spherical + absorption + thermocline_loss
     }
 }

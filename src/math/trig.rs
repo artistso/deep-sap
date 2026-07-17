@@ -90,18 +90,14 @@ pub fn haversine_distance_km(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 
     let dlat = (lat2 - lat1).to_radians();
     let dlon = (lon2 - lon1).to_radians();
     let a = (dlat / 2.0).sin().powi(2)
-        + lat1.to_radians().cos()
-            * lat2.to_radians().cos()
-            * (dlon / 2.0).sin().powi(2);
+        + lat1.to_radians().cos() * lat2.to_radians().cos() * (dlon / 2.0).sin().powi(2);
     let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
     earth_radius_km * c
 }
 
 pub fn law_of_cosines_distance(a: f64, b: f64, included_angle_deg: f64) -> f64 {
     let c_rad = included_angle_deg.to_radians();
-    (a * a + b * b - 2.0 * a * b * c_rad.cos())
-        .max(0.0)
-        .sqrt()
+    (a * a + b * b - 2.0 * a * b * c_rad.cos()).max(0.0).sqrt()
 }
 
 /// Intersect two forward bearing rays. Returns `None` for near-parallel rays
@@ -152,7 +148,10 @@ pub fn trig_triangulation(observations: &[(Position2D, Bearing)]) -> Option<Posi
                 observations[j].0,
                 observations[j].1,
             ) {
-                if fix.x.is_finite() && fix.y.is_finite() && fix.distance_to(&Position2D::zero()) < 500.0 {
+                if fix.x.is_finite()
+                    && fix.y.is_finite()
+                    && fix.distance_to(&Position2D::zero()) < 500.0
+                {
                     fixes.push(fix);
                 }
             }
@@ -178,9 +177,7 @@ pub fn trig_triangulation(observations: &[(Position2D, Bearing)]) -> Option<Posi
 /// bearings. Callers must provide measurements from spatially separated sensor
 /// poses. The returned covariance is the inverse Fisher information scaled by
 /// the measured residual variance.
-pub fn bearing_least_squares_fix(
-    observations: &[BearingLineObservation],
-) -> Option<FixEstimate> {
+pub fn bearing_least_squares_fix(observations: &[BearingLineObservation]) -> Option<FixEstimate> {
     if observations.len() < 2 || maximum_observer_baseline_km(observations) < 0.05 {
         return None;
     }
@@ -208,8 +205,7 @@ pub fn bearing_least_squares_fix(
         }
     }
 
-    let (a00, a01, a11, _, _, weighted_residual_sum) =
-        information_terms(observations, estimate)?;
+    let (a00, a01, a11, _, _, weighted_residual_sum) = information_terms(observations, estimate)?;
     let determinant = a00 * a11 - a01 * a01;
     if determinant.abs() < 1.0e-12 {
         return None;
@@ -280,7 +276,9 @@ fn information_terms(
 
         let predicted = dx.atan2(dy);
         let residual = wrap_radians(observation.bearing.radians - predicted);
-        let sigma = observation.stddev_rad.clamp(0.25_f64.to_radians(), 15.0_f64.to_radians());
+        let sigma = observation
+            .stddev_rad
+            .clamp(0.25_f64.to_radians(), 15.0_f64.to_radians());
         let weight = 1.0 / (sigma * sigma);
 
         let jacobian_x = dy / range_squared;
@@ -296,15 +294,12 @@ fn information_terms(
     Some((a00, a01, a11, b0, b1, weighted_residual_sum))
 }
 
-fn angular_rms_residual(
-    observations: &[BearingLineObservation],
-    estimate: Position2D,
-) -> f64 {
+fn angular_rms_residual(observations: &[BearingLineObservation], estimate: Position2D) -> f64 {
     let sum_squared = observations
         .iter()
         .map(|observation| {
-            let predicted = (estimate.x - observation.observer.x)
-                .atan2(estimate.y - observation.observer.y);
+            let predicted =
+                (estimate.x - observation.observer.x).atan2(estimate.y - observation.observer.y);
             wrap_radians(observation.bearing.radians - predicted).powi(2)
         })
         .sum::<f64>();
@@ -330,8 +325,7 @@ pub fn tma_bearing_only_tracking(
     }
 
     let ownship_speed_km_per_second = ownship_speed_kts * 1.852 / 3600.0;
-    let range_km =
-        (ownship_speed_km_per_second * relative.sin()).abs() / rate_rad_per_second.abs();
+    let range_km = (ownship_speed_km_per_second * relative.sin()).abs() / rate_rad_per_second.abs();
     Some(range_km.clamp(0.05, 500.0))
 }
 
@@ -348,23 +342,15 @@ mod tests {
     fn cross_fix_requires_both_forward_rays() {
         let p1 = Position2D::new(0.0, 0.0);
         let p2 = Position2D::new(10.0, 0.0);
-        let valid = cross_fix_2_bearings(
-            p1,
-            Bearing::from_deg(45.0),
-            p2,
-            Bearing::from_deg(315.0),
-        )
-        .expect("valid forward intersection");
+        let valid = cross_fix_2_bearings(p1, Bearing::from_deg(45.0), p2, Bearing::from_deg(315.0))
+            .expect("valid forward intersection");
         assert!((valid.x - 5.0).abs() < 0.1);
         assert!((valid.y - 5.0).abs() < 0.1);
 
-        assert!(cross_fix_2_bearings(
-            p1,
-            Bearing::from_deg(225.0),
-            p2,
-            Bearing::from_deg(315.0),
-        )
-        .is_none());
+        assert!(
+            cross_fix_2_bearings(p1, Bearing::from_deg(225.0), p2, Bearing::from_deg(315.0),)
+                .is_none()
+        );
     }
 
     #[test]
@@ -412,13 +398,9 @@ mod tests {
 
     #[test]
     fn bearing_rate_range_uses_correct_units() {
-        let range = tma_bearing_only_tracking(
-            10.0,
-            Bearing::from_deg(0.0),
-            Bearing::from_deg(90.0),
-            0.01,
-        )
-        .expect("non-zero bearing rate");
+        let range =
+            tma_bearing_only_tracking(10.0, Bearing::from_deg(0.0), Bearing::from_deg(90.0), 0.01)
+                .expect("non-zero bearing rate");
         let expected = (10.0 * 1.852 / 3600.0) / 0.01_f64.to_radians();
         assert!((range - expected).abs() < 1.0e-9);
     }

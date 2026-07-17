@@ -6,9 +6,7 @@ use bevy::prelude::*;
 use crate::api::ApiState;
 use crate::components::*;
 use crate::math::polynomial::ssp_polynomial_leroy;
-use crate::math::trig::{
-    bearing_least_squares_fix, Bearing, BearingLineObservation, Position2D,
-};
+use crate::math::trig::{bearing_least_squares_fix, Bearing, BearingLineObservation, Position2D};
 
 #[derive(Resource, Debug, Default)]
 pub struct LocatorState {
@@ -90,9 +88,10 @@ pub fn locator_fusion_system(
             ellipse_95,
             updated_at_s: latest_observation.observed_at_s,
         });
-        track.track_quality = track
-            .track_quality
-            .max(if fix.observations_used >= 12 { 4 } else { 3 });
+        track.track_quality =
+            track
+                .track_quality
+                .max(if fix.observations_used >= 12 { 4 } else { 3 });
         tracks_with_fix += 1;
     }
 
@@ -100,10 +99,7 @@ pub fn locator_fusion_system(
     locator_state.last_update_s = now;
 }
 
-pub fn ssp_polynomial_system(
-    mut ocean: ResMut<OceanProfile>,
-    api_state: Res<ApiState>,
-) {
+pub fn ssp_polynomial_system(mut ocean: ResMut<OceanProfile>, api_state: Res<ApiState>) {
     let environment = &api_state.environment;
     if let Some(surface_temperature) = environment.sst_c.value {
         ocean.surface_temp_c = surface_temperature;
@@ -118,11 +114,7 @@ pub fn ssp_polynomial_system(
         ocean.wave_height_m = wave_height.max(0.0);
     }
 
-    ocean.sound_speed_surface = ssp_polynomial_leroy(
-        ocean.surface_temp_c,
-        ocean.salinity_psu,
-        0.0,
-    );
+    ocean.sound_speed_surface = ssp_polynomial_leroy(ocean.surface_temp_c, ocean.salinity_psu, 0.0);
 }
 
 fn covariance_ellipse_95(covariance: Covariance2) -> UncertaintyEllipse {

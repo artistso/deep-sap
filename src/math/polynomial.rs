@@ -31,12 +31,9 @@ impl Polynomial {
 
     pub fn eval(&self, x: f64) -> f64 {
         let normalized_x = (x - self.x_offset) / self.x_scale;
-        self.coeffs
-            .iter()
-            .rev()
-            .fold(0.0, |result, coefficient| {
-                result * normalized_x + coefficient
-            })
+        self.coeffs.iter().rev().fold(0.0, |result, coefficient| {
+            result * normalized_x + coefficient
+        })
     }
 
     pub fn derivative_at(&self, x: f64) -> f64 {
@@ -114,10 +111,7 @@ pub fn fit_polynomial(points: &[(f64, f64)], degree: usize) -> Option<Polynomial
     let mut r = vec![vec![0.0; columns]; columns];
 
     for column in 0..columns {
-        let mut vector: Vec<f64> = normalized_x
-            .iter()
-            .map(|x| x.powi(column as i32))
-            .collect();
+        let mut vector: Vec<f64> = normalized_x.iter().map(|x| x.powi(column as i32)).collect();
 
         for previous in 0..column {
             let projection = dot(&q_columns[previous], &vector);
@@ -194,9 +188,7 @@ pub fn predict_polynomial(fit: &PolynomialFit, x: f64) -> f64 {
 /// Simplified Leroy-style sound-speed approximation used by the simulation.
 pub fn ssp_polynomial_leroy(temp_c: f32, salinity_psu: f32, depth_m: f32) -> f32 {
     let temperature = temp_c;
-    1402.5
-        + 5.0 * temperature
-        - 0.055 * temperature * temperature
+    1402.5 + 5.0 * temperature - 0.055 * temperature * temperature
         + 0.00029 * temperature * temperature * temperature
         + (1.34 - 0.01 * temperature) * (salinity_psu - 35.0)
         + 0.016 * depth_m
@@ -225,14 +217,8 @@ pub fn tma_quadratic_prediction(
     if history.len() < 3 {
         return None;
     }
-    let x_points: Vec<(f64, f64)> = history
-        .iter()
-        .map(|(time, x, _)| (*time, *x))
-        .collect();
-    let y_points: Vec<(f64, f64)> = history
-        .iter()
-        .map(|(time, _, y)| (*time, *y))
-        .collect();
+    let x_points: Vec<(f64, f64)> = history.iter().map(|(time, x, _)| (*time, *x)).collect();
+    let y_points: Vec<(f64, f64)> = history.iter().map(|(time, _, y)| (*time, *y)).collect();
     let fit_x = fit_polynomial(&x_points, 2)?;
     let fit_y = fit_polynomial(&y_points, 2)?;
     Some((
@@ -241,7 +227,9 @@ pub fn tma_quadratic_prediction(
     ))
 }
 
-pub fn least_squares_position(satellite_observations: &[(f64, f64, f64, f64)]) -> Option<(f64, f64)> {
+pub fn least_squares_position(
+    satellite_observations: &[(f64, f64, f64, f64)],
+) -> Option<(f64, f64)> {
     if satellite_observations.len() < 2 {
         return None;
     }

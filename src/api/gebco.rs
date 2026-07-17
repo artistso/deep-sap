@@ -16,7 +16,10 @@ pub async fn fetch_depth_wasm(lat: f64, lon: f64) -> Result<RealOceanSample, Str
         .await
         .map_err(|error| format!("GEBCO request failed: {error:?}"))?;
     if !response.ok() {
-        return Err(format!("GEBCO provider returned HTTP {}", response.status()));
+        return Err(format!(
+            "GEBCO provider returned HTTP {}",
+            response.status()
+        ));
     }
 
     let json: serde_json::Value = response
@@ -27,7 +30,8 @@ pub async fn fetch_depth_wasm(lat: f64, lon: f64) -> Result<RealOceanSample, Str
         .as_array()
         .and_then(|results| results.first())
         .and_then(|result| result["elevation"].as_f64())
-        .ok_or_else(|| "GEBCO provider returned no elevation".to_string())? as f32;
+        .ok_or_else(|| "GEBCO provider returned no elevation".to_string())?
+        as f32;
 
     Ok(RealOceanSample {
         lat,
