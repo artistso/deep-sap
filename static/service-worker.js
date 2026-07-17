@@ -1,4 +1,4 @@
-const CACHE_NAME = "deep-sap-shell-v2";
+const CACHE_NAME = "deep-sap-shell-v3";
 const SHELL = [
   "./",
   "./manifest.json",
@@ -35,7 +35,12 @@ self.addEventListener("fetch", event => {
         }
         return response;
       });
-      return cached || network.catch(() => caches.match("./"));
+
+      if (cached) return cached;
+      if (request.mode === "navigate") {
+        return network.catch(() => caches.match("./"));
+      }
+      return network;
     })
   );
 });
