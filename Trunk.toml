@@ -1,0 +1,11 @@
+[build]
+target = "index.html"
+dist = "dist"
+
+[watch]
+watch = ["src", "assets", "index.html", "styles.css"]
+
+[serve]
+address = "0.0.0.0"
+port = 8080
+open = false

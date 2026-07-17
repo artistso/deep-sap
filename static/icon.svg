@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DEEP SAP">
+  <rect width="512" height="512" rx="96" fill="#001122"/>
+  <circle cx="256" cy="256" r="170" fill="none" stroke="#44aaff" stroke-width="18" opacity="0.9"/>
+  <circle cx="256" cy="256" r="110" fill="none" stroke="#44aaff" stroke-width="10" opacity="0.65"/>
+  <path d="M256 256 L423 220" stroke="#8ad7ff" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="22" fill="#8ad7ff"/>
+  <text x="256" y="470" text-anchor="middle" font-family="monospace" font-size="54" font-weight="700" fill="#d8f2ff">SAP</text>
+</svg>

@@ -1,0 +1,36 @@
+{
+  "id": "./",
+  "name": "DEEP SAP — Synthetic Ocean Sensor Fusion",
+  "short_name": "DEEP SAP",
+  "description": "Unclassified synthetic ocean sensor-fusion simulation with public environmental context.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#001122",
+  "theme_color": "#001122",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "games",
+    "education"
+  ],
+  "shortcuts": [
+    {
+      "name": "Public Data Dashboard",
+      "url": "./live_ocean.html",
+      "description": "Public environmental data and provenance"
+    },
+    {
+      "name": "Offline Preview",
+      "url": "./preview_sonar.html",
+      "description": "Static synthetic sonar preview"
+    }
+  ]
+}
