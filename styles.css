@@ -1,0 +1,5 @@
+/* DEEP SAP - Tab S10+ tuned */
+* { -webkit-tap-highlight-color: transparent; }
+body { font-family: 'JetBrains Mono', 'SF Mono', monospace; }
+canvas { cursor: crosshair; }
+body.pen-active canvas { cursor: none; }

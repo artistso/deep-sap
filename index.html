@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0"/>
+  <meta name="theme-color" content="#001122"/>
+  <meta name="description" content="Unclassified synthetic ocean sensor-fusion simulation with public environmental context."/>
+  <meta name="referrer" content="no-referrer"/>
+  <title>DEEP SAP — Synthetic Ocean Sensor Fusion</title>
+  <base data-trunk-public-url/>
+  <link rel="manifest" href="./manifest.json"/>
+  <link rel="icon" href="./icon.svg"/>
+  <link data-trunk rel="copy-dir" href="static"/>
+  <link data-trunk rel="copy-file" href="preview_sonar.html"/>
+  <link data-trunk rel="copy-file" href="live_ocean.html"/>
+  <link data-trunk rel="copy-file" href="press.html"/>
+  <link data-trunk rel="rust" data-wasm-opt="0" data-bin="deep_sap"/>
+  <link data-trunk rel="css" href="styles.css"/>
+  <style>
+    html, body { margin:0; padding:0; background:#001122; overflow:hidden; width:100%; height:100%; overscroll-behavior:none; }
+    canvas { display:block; outline:none; touch-action:none; width:100% !important; height:100% !important; }
+    #loading { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#8af; font-family:monospace; z-index:10; background:radial-gradient(ellipse at center, #0a2a4a 0%, #001122 80%); transition:opacity .6s; }
+    #loading h1 { letter-spacing:0.3em; font-size:2.2rem; margin:0; text-shadow:0 0 12px #4af; }
+    #loading p { opacity:.78; margin-top:1rem; }
+    .scanline { width:280px; height:2px; background:#4af; box-shadow:0 0 10px #4af; margin-top:2rem; animation:scan 1.8s infinite; }
+    @keyframes scan { 0%{transform:translateX(-100px); opacity:0} 50%{opacity:1} 100%{transform:translateX(100px); opacity:0} }
+  </style>
+</head>
+<body>
+  <div id="loading" role="status" aria-live="polite">
+    <h1>DEEP SAP</h1>
+    <p>UNCLASSIFIED SYNTHETIC SENSOR-FUSION LAB</p>
+    <p style="font-size:.8rem; max-width:430px; text-align:center">Deterministic targets • noisy observations • per-track covariance • S Pen Pointer Events</p>
+    <div class="scanline"></div>
+    <p id="status">Loading WASM simulation…</p>
+  </div>
+  <noscript>This simulation requires JavaScript and WebAssembly.</noscript>
+  <script>
+    window.__deepSapStylus = {
+      active: false,
+      pressure: 0,
+      tiltX: 0,
+      tiltY: 0,
+      twist: 0,
+      barrelButton: false,
+      hovering: false,
+      pointerId: -1,
+      timestamp: 0,
+    };
+
+    function updateStylus(event, active) {
+      if (event.pointerType !== "pen") return;
+      const sample = event.getCoalescedEvents?.().at(-1) || event;
+      window.__deepSapStylus = {
+        active,
+        pressure: Number.isFinite(sample.pressure) ? sample.pressure : 0,
+        tiltX: Number.isFinite(sample.tiltX) ? sample.tiltX : 0,
+        tiltY: Number.isFinite(sample.tiltY) ? sample.tiltY : 0,
+        twist: Number.isFinite(sample.twist) ? sample.twist : 0,
+        barrelButton: (sample.buttons & 2) !== 0,
+        hovering: sample.buttons === 0,
+        pointerId: sample.pointerId,
+        timestamp: sample.timeStamp,
+      };
+      document.body.classList.toggle("pen-active", active);
+    }
+
+    addEventListener("pointerover", event => updateStylus(event, true), { passive: true });
+    addEventListener("pointermove", event => updateStylus(event, true), { passive: true });
+    addEventListener("pointerdown", event => updateStylus(event, true), { passive: true });
+    addEventListener("pointerup", event => updateStylus(event, true), { passive: true });
+    addEventListener("pointerout", event => updateStylus(event, false), { passive: true });
+    addEventListener("pointercancel", event => updateStylus(event, false), { passive: true });
+
+    const observer = new MutationObserver(() => {
+      if (!document.querySelector("canvas")) return;
+      const loading = document.getElementById("loading");
+      loading.style.opacity = "0";
+      setTimeout(() => loading.remove(), 700);
+      observer.disconnect();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    let wakeLock = null;
+    async function requestWakeLock() {
+      if (!("wakeLock" in navigator) || document.visibilityState !== "visible") return;
+      try {
+        wakeLock = await navigator.wakeLock.request("screen");
+        wakeLock.addEventListener("release", () => { wakeLock = null; });
+      } catch (_) {
+        wakeLock = null;
+      }
+    }
+    addEventListener("pointerdown", requestWakeLock, { once: true, passive: true });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && !wakeLock) requestWakeLock();
+    });
+
+    if ("serviceWorker" in navigator) {
+      addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js", { scope: "./" }).catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

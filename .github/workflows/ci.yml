@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  rust-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Generate dependency lockfile when absent
+        run: cargo generate-lockfile
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Clippy native
+        id: clippy-native
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          cargo clippy --all-targets --all-features -- -D warnings 2>&1 | tee clippy-native.log
+      - name: Upload native Clippy diagnostics
+        if: steps.clippy-native.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: clippy-native-diagnostics
+          path: clippy-native.log
+      - name: Fail on native Clippy error
+        if: steps.clippy-native.outcome == 'failure'
+        run: exit 1
+      - name: Numerical core unit tests
+        run: cargo test --lib --all-features
+      - name: Independent math reference checks
+        run: python tools/math_reference_check.py
+      - name: Check WASM target
+        run: cargo check --target wasm32-unknown-unknown --no-default-features
+      - name: Clippy WASM target
+        run: cargo clippy --target wasm32-unknown-unknown --no-default-features -- -D warnings
+
+  javascript-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate release web assets and boundaries
+        run: python tools/validate_release.py
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@cargo-audit
+      - name: Generate dependency lockfile when absent
+        run: cargo generate-lockfile
+      - name: Audit Rust dependencies
+        run: cargo audit
+
+  wasm-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: jetli/trunk-action@v0.5.0
+      - uses: Swatinem/rust-cache@v2
+      - name: Build release PWA
+        id: trunk-build
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          trunk build --release --public-url ./ 2>&1 | tee trunk-build.log
+      - name: Upload Trunk diagnostics
+        if: steps.trunk-build.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: trunk-build-diagnostics
+          path: trunk-build.log
+      - name: Fail on Trunk build error
+        if: steps.trunk-build.outcome == 'failure'
+        run: exit 1
+      - name: Enforce compressed WASM budget
+        shell: bash
+        run: |
+          set -euo pipefail
+          wasm_file="$(find dist -maxdepth 1 -name '*.wasm' -print -quit)"
+          test -n "$wasm_file"
+          gzip -c "$wasm_file" > /tmp/deep_sap.wasm.gz
+          bytes="$(wc -c < /tmp/deep_sap.wasm.gz)"
+          echo "Compressed WASM: $bytes bytes" | tee -a "$GITHUB_STEP_SUMMARY"
+          test "$bytes" -le 14680064
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deep-sap-dist
+          path: dist

@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+early_access: false
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  review_status: true
+  poem: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+
+  path_filters:
+    - "!target/**"
+    - "!dist/**"
+    - "!pkg/**"
+    - "!**/*.wasm"
+    - "!**/*.zip"
+    - "!**/*.png"
+    - "!**/*.jpg"
+    - "!**/*.webp"
+
+  path_instructions:
+    - path: "src/**/*.rs"
+      instructions: |
+        Review for Rust correctness, Bevy ECS query conflicts, panic paths,
+        nondeterministic scheduling, unnecessary allocation, and f32/f64 misuse.
+        Flag code that bypasses the observation and estimation architecture.
+
+    - path: "src/**/*math*.rs"
+      instructions: |
+        Stress-test dimensional consistency, radians versus degrees, circular
+        angle arithmetic, singular geometry, numerical conditioning, covariance
+        validity, confidence-region scaling, and degenerate inputs.
+
+    - path: "src/**/*track*.rs"
+      instructions: |
+        Ensure tracking consumes observations and estimated state only.
+        Flag access to hidden target identity, faction, classification,
+        position, velocity, or any other truth-layer information.
+
+    - path: "src/**/*sensor*.rs"
+      instructions: |
+        Confirm observations carry explicit timestamps, sensor poses,
+        uncertainties, units, provenance, and defensible noise models.
+
+    - path: "cloudflare_worker_proxy.js"
+      instructions: |
+        Review strictly for secret disclosure, unrestricted CORS, SSRF,
+        token forwarding, query-string credentials, unsafe caching,
+        missing input validation, and excessive error disclosure.
+
+    - path: ".github/workflows/**"
+      instructions: |
+        Ensure failures cannot be suppressed, Rust and WASM jobs actually run,
+        permissions are minimal, actions are pinned appropriately, and build
+        artifacts originate only from successful validated jobs.
+
+    - path: "tools/**"
+      instructions: |
+        Verify validators fail closed, cover boundary cases, use explicit
+        tolerances, and cannot silently skip required checks.
+
+chat:
+  auto_reply: true

@@ -1,0 +1,42 @@
+# Rust / Bevy
+/target/
+/dist/
+**/*.rs.bk
+
+# Trunk / WASM
+.wasm-pack/
+pkg/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Env / Keys
+.env
+.env.local
+.secrets/
+api_keys.json
+
+# Data cache - GEBCO tiles, NOAA NetCDF
+/data/
+/assets/gebco/
+/assets/noaa-cache/
+/cache/
+
+# PWA / Node (for gh-pages deploy)
+node_modules/
+npm-debug.log
+.yarn/
+
+# OS
+*.log
+tmp/
+temp/
+
+# Bevy asset hot reload
+*.import
+*.meta
